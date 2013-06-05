@@ -1,5 +1,6 @@
 ---
 layout: docs
+categories: docs
 title: Creating pages
 ---
 
