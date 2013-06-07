@@ -25,7 +25,8 @@ Concrete classes
    - inherits from `MvxTableViewSource`
    - provides a single cell type for all items in the collection - via `string nibName` in the `ctor`
    - within these cells you can bind what you like - see videos (later)
- - [MvxActionBasedTableViewSource.cs][5] - provides some `Func<>`style hooks to allow you to implement `GetOrCreateCellFor` without inheriting a new class from `MvxTableViewSource`
+ - [MvxActionBasedTableViewSource.cs][5] 
+   - provides some `Func<>`style hooks to allow you to implement `GetOrCreateCellFor` without inheriting a new class from `MvxTableViewSource`
 
 ---------
 
