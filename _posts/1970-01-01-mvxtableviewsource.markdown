@@ -1,3 +1,9 @@
+---
+layout: docs
+categories: docs
+title:  "Choosing an MvvmCross TableViewSource"
+---
+
 The available v3 table sources are:
 
 Abstract classes
