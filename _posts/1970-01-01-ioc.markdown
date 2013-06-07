@@ -1,3 +1,9 @@
+---
+layout: docs
+categories: docs
+title:  "Inversion of Control"
+---
+
 Two key ideas that are used in MvvmCross are:
 
 - the Service Locator pattern
