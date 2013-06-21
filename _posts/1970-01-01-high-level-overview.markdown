@@ -169,6 +169,8 @@ An MvvmCross 'ui' project provides:
 
 ###Platform specific application code
 
+####iOS
+
 On iOS, we need to replace the normal `AppDelegate.cs` class with an `MvxApplicationDelegate`
 
 An initial replacement looks like:
@@ -203,6 +205,8 @@ An initial replacement looks like:
 		}
 	}
   
+####Android
+
 On Android, we don't normally have any `Application` to override. Instead of this, MvvmCross by default provides a `SplashScreen` - this typically looks like:
 
     using Android.App;
@@ -227,4 +231,92 @@ On Android, we don't normally have any `Application` to override. Instead of thi
         }
     }
     
-Importantly, please note that this is marked with `MainLauncher = true` to ensure that this is the first thing created when we start.
+Importantly, please note that this class is marked with `MainLauncher = true` to ensure that this is the first thing created when the native platform starts.
+
+####WindowsPhone
+
+On WindowsPhone, a new project will contain a native `App.xaml.cs`
+
+To adapt this for MvvmCross, we simply:
+
+1. add a line to the constructor:
+
+            var setup = new Setup(RootFrame);
+            setup.Initialize();
+
+2. add a block to `Application_Launching` to force the native app to defer the start actions to `IMvxAppStart`
+ 
+        private void Application_Launching(object sender, LaunchingEventArgs e)
+        {
+            RootFrame.Navigating += RootFrameOnNavigating;
+        }
+
+        private void RootFrameOnNavigating(object sender, NavigatingCancelEventArgs args)
+        {
+            args.Cancel = true;
+            RootFrame.Navigating -= RootFrameOnNavigating;
+            RootFrame.Dispatcher.BeginInvoke(() => { Cirrious.CrossCore.Mvx.Resolve<Cirrious.MvvmCross.ViewModels.IMvxAppStart>().Start(); });
+        }
+
+####WindowsStore
+
+On WindowsStore, a new project will again contain a native `App.xaml.cs`
+
+To adapt this for MvvmCross, we simply find the method `OnLaunched` and replace the `if (rootFrame.Content == null)` block with:
+
+                var setup = new Setup(rootFrame);
+                setup.Initialize();
+                
+                var start = Cirrious.CrossCore.Mvx.Resolve<Cirrious.MvvmCross.ViewModels.IMvxAppStart>();
+                start.Start();
+
+###Setup.cs
+
+The Setup class is the bootstrapper for the MvvmCross system.
+
+This bootstrapper goes through a lot of steps. You can see most of them in the MvxSetup.cs class source which includes a sequence like this:
+
+            // IoC
+            InitializeIoC();
+         
+            // Core components
+            InitializeFirstChance();
+            InitializeDebugServices();
+            InitializePlatformServices();
+            InitializeSettings();
+            InitializeSingletonCache();
+            
+            // Second components
+            PerformBootstrapActions();
+            InitializeStringToTypeParser();
+            InitializeViewModelFramework();
+            var pluginManager = InitializePluginFramework();
+            InitializeApp(pluginManager);
+            InitialiseViewModelTypeFinder();
+            InitializeViewsContainer();
+            InitiaiseViewDispatcher();
+            InitializeViewLookup();
+            InitialiseCommandCollectionBuilder();
+            InitializeNavigationSerializer();
+            InitializeInpcInterception();
+            InitializeLastChance();
+
+Most of these steps are `virtual` - so they allow customisation. Also most of these steps are implemented using virtual `Create` steps - which again should make customisation easier:
+           
+            protected virtual void InitialiseFoo()
+            {
+               var foo = CreateFoo();
+               Mvx.RegisterSingleton<Foo>();
+            }
+            
+            protected virtual IFoo CreateFoo()
+            {
+               return new Foo();
+            }
+
+STAR HERE
+Many applications override very few methods. However, some key steps you might want to be aware of are:
+
+- `InitializeIoC` - use this is you want to change the start of IoC
+- `InitializeFirstChance` - a "first blood" placeholder for any steps you want to take before any of the later steps happen
+- `InitializeDebugServices` - a chance to initialize application trace - this can easily be customized - see http://stackoverflow.com/a/17234083/373321
