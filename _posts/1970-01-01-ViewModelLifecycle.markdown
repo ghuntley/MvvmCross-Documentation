@@ -4,6 +4,7 @@ categories: docs
 title:  "ViewModel Lifecycle"
 ---
 
+#ViewModelLifecycle
 In MvvmCross v3 - Hot Tuna - the default ViewModel location and construction was overhauled in order to provide 3 new features:
 
 - constructor based Dependency Injection
