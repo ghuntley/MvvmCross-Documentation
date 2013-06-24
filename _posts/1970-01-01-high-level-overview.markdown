@@ -213,7 +213,7 @@ On Android, we don't normally have any `Application` to override. Instead of thi
     using Android.Content.PM;
     using Cirrious.MvvmCross.Droid.Views;
 
-    namespace CustomBinding.Droid
+    namespace MyName.Droid
     {
         [Activity(
   	    Label = "CustomBinding.Droid"
@@ -274,49 +274,102 @@ To adapt this for MvvmCross, we simply find the method `OnLaunched` and replace 
 
 The Setup class is the bootstrapper for the MvvmCross system.
 
-This bootstrapper goes through a lot of steps. You can see most of them in the MvxSetup.cs class source which includes a sequence like this:
+This bootstrapper goes through a lot of steps, and almost all of these are `virtual` allowing you to customise MvvmCross. 
 
-            // IoC
-            InitializeIoC();
-         
-            // Core components
-            InitializeFirstChance();
-            InitializeDebugServices();
-            InitializePlatformServices();
-            InitializeSettings();
-            InitializeSingletonCache();
-            
-            // Second components
-            PerformBootstrapActions();
-            InitializeStringToTypeParser();
-            InitializeViewModelFramework();
-            var pluginManager = InitializePluginFramework();
-            InitializeApp(pluginManager);
-            InitialiseViewModelTypeFinder();
-            InitializeViewsContainer();
-            InitiaiseViewDispatcher();
-            InitializeViewLookup();
-            InitialiseCommandCollectionBuilder();
-            InitializeNavigationSerializer();
-            InitializeInpcInterception();
-            InitializeLastChance();
+Some key ones you should be aware of are:
 
-Most of these steps are `virtual` - so they allow customisation. Also most of these steps are implemented using virtual `Create` steps - which again should make customisation easier:
-           
-            protected virtual void InitialiseFoo()
-            {
-               var foo = CreateFoo();
-               Mvx.RegisterSingleton<Foo>();
-            }
-            
-            protected virtual IFoo CreateFoo()
-            {
-               return new Foo();
-            }
-
-STAR HERE
-Many applications override very few methods. However, some key steps you might want to be aware of are:
-
-- `InitializeIoC` - use this is you want to change the start of IoC
+- `CreateApplication` - your Setup **must** override this one in order to provide a new instance of your `App` object from your core project
 - `InitializeFirstChance` - a "first blood" placeholder for any steps you want to take before any of the later steps happen
-- `InitializeDebugServices` - a chance to initialize application trace - this can easily be customized - see http://stackoverflow.com/a/17234083/373321
+- `CreateDebugTrace` - a chance to customise where application trace is placed - see http://stackoverflow.com/a/17234083/373321 for an example
+- `InitializeLastChance` - a "last ditch" placeholder for any steps you want to take after all of earlier steps have happened.  Note that the Android and iOS base Setup classes use 'last chance' for initializing the UI data-binding system, so it's important to always call `base.InitializeLastChance()` in your override.
+
+Beyond this, a larger list of Setup customisation options is discussed in TODO-LINK
+
+####Minimal Setup - Android
+
+    using Android.Content;
+    using Cirrious.MvvmCross.Droid.Platform;
+    using Cirrious.MvvmCross.ViewModels;
+    
+    namespace MyName.Droid
+    {
+        public class Setup : MvxAndroidSetup
+        {
+            public Setup(Context applicationContext) : base(applicationContext)
+            {
+            }
+
+            protected override IMvxApplication CreateApp()
+            {
+                return new Core.App();
+            }
+        }
+    }
+
+####Minimal Setup - iOS
+
+    using MonoTouch.UIKit;
+    using Cirrious.MvvmCross.Touch.Platform;
+    
+    namespace MyName.Touch
+    {
+	    public class Setup : MvxTouchSetup
+	    {
+		    public Setup(MvxApplicationDelegate applicationDelegate, UIWindow window)
+                : base(applicationDelegate, window)
+		    {
+		    }
+
+		    protected override Cirrious.MvvmCross.ViewModels.IMvxApplication CreateApp ()
+		    {
+			    return new Core.App();
+		    }
+	    }
+    }
+
+####Minimal Setup - WindowsPhone
+
+    using Cirrious.MvvmCross.ViewModels;
+    using Cirrious.MvvmCross.WindowsPhone.Platform;
+    using Microsoft.Phone.Controls;
+
+    namespace MyName.Phone
+    {
+        public class Setup : MvxPhoneSetup
+        {
+            public Setup(PhoneApplicationFrame rootFrame) : base(rootFrame)
+            {
+            }
+
+            protected override IMvxApplication CreateApp()
+            {
+                return new Core.App();
+            }
+        }
+    }
+    
+####Setup - WindowsStore
+
+    using Cirrious.MvvmCross.ViewModels;
+    using Cirrious.MvvmCross.WindowsStore.Platform;
+    using Windows.UI.Xaml.Controls;
+
+    namespace MyName.Store
+    {
+        public class Setup : MvxStoreSetup
+        {
+            public Setup(Frame rootFrame) : base(rootFrame)
+            {
+            }
+
+            protected override IMvxApplication CreateApp()
+            {
+                return new Core.App();
+            }
+        }
+    }
+
+###Views
+Each UI Platform needs a set of Views
+
+TODO - come back here...
