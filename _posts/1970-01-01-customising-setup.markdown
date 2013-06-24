@@ -354,9 +354,28 @@ This technique involves using the `CallbackWhenRegistered` IoC method on the `IM
         }            
 
 
+##Providing Custom Views (Android)
+
+In Android, MvvmCross overrides the default Android xml inflation and instead provides its own mechanism.
+
+In order to do this, you must supply the MvvmCross binding system with a list of Assembly's in which it should look for Android `View` objects (note that these are Android `View` objects and have nothing to do with Mvvm `View`s at this point).
+
+To do this, you can override the `Setup` property `AndroidViewAssemblies`:
+
+        protected override IList<Assembly> AndroidViewAssemblies
+        {
+            get
+            {
+            	var toReturn = base.AndroidViewAssemblies;
+            	toReturn.Add(typeof(CheeseBaron.ExcellentViews.Pages).Assembly);
+                return toReturn;
+            }
+        }
+
+
 
 #TODO
-##Providing CustomViews (android)
 ##FillBindingNames
 ##FillTargetFactories
 ##CustomPresenters
+##Overriding View-ViewModel associations
