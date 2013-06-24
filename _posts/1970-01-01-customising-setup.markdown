@@ -280,6 +280,21 @@ This can then be registered in `App` using:
 
 **Note:** For situations where the app is launched using a `protocol` - e.g. from a Push notification or from an email link - then the `object hint` parameter start can be used to transfer a hint from the UI to the start object. Currently, it's up to you - the app developer - to write the UI side code to do this.
 
+##Custom Presenters
+
+For 'my first MvvmCross application' most people start with a 'full page' app in which each `ShowViewModel` causes a new `View` to be displayed, filling an entire screen at a time.
+
+There are many other possibilities for ViewModel->ViewModel navigation, including:
+
+- tabbed displays
+- dialogs and flyouts
+- 'hamburger menus'
+- splitviews, master-detail displays, screen 'regions' and other screen division/fragmentation
+ 
+To provide these alternative UI possibilities, MvvmCross allows each app to provide a custom presenter.
+
+For more on custom presenters, see several articles and videos linked from: http://slodge.blogspot.co.uk/2013/06/presenter-roundup.html
+
 ##Providing ValueConverters
 
 For the platforms that use MvvmCross' databinding platform, then ValueConverters:
@@ -354,6 +369,8 @@ This technique involves using the `CallbackWhenRegistered` IoC method on the `IM
         }            
 
 
+For more on creating ValueConverters, see the ValueConverter sample in: https://github.com/slodge/MvvmCross-Tutorials/tree/master/ValueConversion
+
 ##Providing Custom Views (Android)
 
 In Android, MvvmCross overrides the default Android xml inflation and instead provides its own mechanism.
@@ -373,9 +390,86 @@ To do this, you can override the `Setup` property `AndroidViewAssemblies`:
         }
 
 
+For more on writing Custom Views, see the N=18 and N=19 steps in N+1 - todo-link
 
-#TODO
-##FillBindingNames
-##FillTargetFactories
-##CustomPresenters
+## Registering Default Binding Names
+
+In iOS Fluent Bindings you frequently see code like:
+
+	set.Bind(myLabel).To(vm => vm.FullName);
+
+This code uses a developer shortcut - the **default** binding property of a UILabel. This is just a shortcut and it means the binding is actually performed as:
+
+	set.Bind(myLabel).For(label => label.Text).To(vm => vm.FullName);
+
+At present the defined set of default properties or events includes:
+
+            UIButton TouchUpInside
+            UIBarButtonItem Clicked
+            UITextField Text
+            UITextView Text
+            UITextField Text
+            MvxCollectionViewSource ItemsSource
+            MvxTableViewSource ItemsSource
+            MvxImageView ImageUrl
+            UIImageView	Image
+            UIDatePicker Date
+            UISlider Value
+            UISwitch On
+            UIDatePicker Date
+            IMvxImageHelper ImageUrl
+            MvxImageViewLoader ImageUrl
+
+If you would like register additional shortcuts in your application, or if you'd like to replace some of the existing shortcuts, then this can be done in `FillBindingNames`
+
+		protected override void FillBindingNames(IMvxBindingNameRegistry registry)
+		{
+			registry.AddOrOverwrite(typeof (MyControl), "MyDefaultPropertyOrEvent");
+		}
+
+##Registering custom bindings
+
+MvvmCross binding works by default against Android and iOS UI objects by trying to use Reflection on properties and events.
+
+This generally works really well, especially for cases where properties and events are linked using the convention that the property called `Foo` is associated with the change event `FooChanged`
+
+For situations where this default binding doesn't work, custom bindings can be written and these can be registered using an override of the `FillTargetFactories` method in the Android and iOS `Setup` classes.
+
+For more on this, see the N+1 video on custom binding - N=28.
+
 ##Overriding View-ViewModel associations
+
+By default, MvvmCross discovers the ViewModel that a View is associated with using the type of ViewModel discovered by name convention
+
+This makes prototyping initial application generally very functionality straight-forward.
+
+However, as applications grow in size and complexity, then sometimes developers like to override this lookup behaviour.
+
+To do this they can instead:
+
+- provide a concrete type of the ViewModel where one is specified - e.g. as:
+    
+	public new DetailViewModel ViewModel
+        {
+             get { return base.ViewModel as DetailViewModel; }
+             set { base.ViewModel = value; }
+        }
+
+- or provide an explicit type of the ViewModel specified using an `MvxViewForAttribute`
+ 
+Further, in cases where every microsecond of startup time is essential, they can also help reduce the Reflection overhead by overriding the `InitializeViewLookup` method - e.g.
+
+        protected override void InitializeViewLookup()
+        {
+            var viewModelViewLookup = new Dictionary<Type, Type>()
+            {
+            	{ typeof (FirstViewModel), typeof(FirstView) },
+            	{ typeof (SecondViewModel), typeof(SecondView) },
+            	//
+            	{ typeof (UmpteenthViewModel), typeof(UmpteenthView) },
+            };
+
+            var container = Mvx.Resolve<IMvxViewsContainer>();
+            container.AddAll(viewModelViewLookup);
+        }
+
