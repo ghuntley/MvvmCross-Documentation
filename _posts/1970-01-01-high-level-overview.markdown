@@ -370,6 +370,17 @@ Beyond this, a larger list of Setup customisation options is discussed in TODO-L
     }
 
 ###Views
+
 Each UI Platform needs a set of Views
 
-TODO - come back here...
+Each View is normally databound to a single ViewModel for its entire lifetime.
+
+On each platform, Views in the Mvvm sense are typically implemented using data-bound versions of:
+
+- On Windows platforms a `UserControl` - for WindowsStore and WindowsPhone, this is very often specialised into a `Page`
+- On Android, an `Activity` or `Fragment`
+- On iOS, a `UIViewController`
+
+Within this introduction we won't go further into how these Views are actually written - instead see the introductions to data-binding on each platform within the TipCalc tutorial.
+
+One important thing to note, is that by default `View`s are associated with `ViewModel`s using a naming convention in MvvmCross. This can be overridden if required (see the TODO-LINK-SETUP) - but by default the MvvmCross system links a View called `FooView` to a ViewModel called `FooViewModel`
