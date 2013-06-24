@@ -33,6 +33,7 @@ There are a few key objects within an MvvmCross application:
  - the native `Application` object - responsible for native lifecycle events - on each platform this object is a platform-specific class
  - an MvvmCross `Setup` class - resposnible for 'bootstraping' MvvmCross, your 'core' and your 'ui'
  - one or more `Views` - each one responsible for presenting one of your `ViewModels`
+ - a `Presenter` - responsible for deciding how `Views` are shown
  - custom UI code - for controls, gestures, events, etc
 
 ##How an MvvmCross application starts
@@ -165,6 +166,7 @@ An MvvmCross 'ui' project provides:
 - the native platform-specific application code - e.g `Main.cs` and `AppDelegate.cs` on Xamarin.iOS
 - a `Setup.cs` class
 - one or more `Views` - each one responsible for presenting one of your `ViewModels`
+- a `Presenter` - responsible for deciding how `Views` are shown
 - custom UI code - for controls, gestures, events, etc
 
 ###Platform specific application code
@@ -384,3 +386,11 @@ On each platform, Views in the Mvvm sense are typically implemented using data-b
 Within this introduction we won't go further into how these Views are actually written - instead see the introductions to data-binding on each platform within the TipCalc tutorial.
 
 One important thing to note, is that by default `View`s are associated with `ViewModel`s using a naming convention in MvvmCross. This can be overridden if required (see the TODO-LINK-SETUP) - but by default the MvvmCross system links a View called `FooView` to a ViewModel called `FooViewModel`
+
+###A Presenter
+
+Each UI Platform provides a `Presenter` which implement `IMvxViewPresenter`
+
+In default applications, the `Presenter` used normally fills the entire screen with a `Page` and allows back button navigation to previous pages.
+
+When more advanced screen layouts are needed - e.g. flyouts, tabs, pivots, split-screens, etc - then these can be supplied by using a custom presenter. For more on this, see TODO-LINK-TO-SETUP
