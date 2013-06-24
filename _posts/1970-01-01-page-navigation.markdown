@@ -1,3 +1,9 @@
+---
+layout: docs
+categories: docs
+title:  "Page Navigation"
+---
+
 This article will cover some of the techniques available within MvvmCross v3 for navigating between Page-level `ViewModel`s.
 
 ##What do we mean by 'Page'?
@@ -6,7 +12,7 @@ MvvmCross was born for making modern Mobile apps - for building apps for iPhone,
 
 These apps are generally 'Page'-based - that is they generally involve User-Interfaces which show a single 'Page' at a time and which often involve the user experience moving 'forwards' and 'backwards' through the application workflow.
 
-There are variations on this, especially for `Tab`bed or `Pivot`ing user interfaces; for `Dialog`s; and for `Split` displays. We'll introduce some of these briefly at the end of this article.
+There are variations on this, especially for `Tab`bed or `Pivot`ing user interfaces; for `Dialog`s; and for `Split` displays. For using these alternatives, see TODO-SETUP-LINK-TO-PRESENTERS.
 
 ##The initial navigation
 
@@ -14,7 +20,7 @@ In the `TipCalc` walkthough, we built most of our initial MvvmCross applications
 
 An implementation of this interface was registered by the core `App` like:
 
-     Mvx.RegisterSingleton<IMvxAppStart>(new MvxAppStart<TipViewModel>());
+     Mvx.RegisterAppStart<TipViewModel>();
 
 This implementation was then used in the `AppDelegate` and `App.Xaml` start sequences within the UI projects.
 
@@ -67,13 +73,13 @@ To add a splashscreen:
 
 The `TipCalc` app had a very simple startup instruction:
 
-     Mvx.RegisterSingleton<IMvxAppStart>(new MvxAppStart<TipViewModel>());
+     Mvx.RegisterAppStart<TipViewModel>();
 
 This was an instruction to: **always start the app with a `TipViewModel`**
 
 If you wanted instead to start with a different `ViewModel` - e.g. with `LoginViewModel` then you'd have to replace this with:
 
-     Mvx.RegisterSingleton<IMvxAppStart>(new MvxAppStart<LoginViewModel>());
+     Mvx.RegisterAppStart<LoginViewModel>();
 
 If you wanted instead to start with some logic, then you can do this by providing a custom `IMvxAppStart` implementation - e.g.:
 
@@ -126,7 +132,7 @@ To see an example of this, let's set up a simple Android application.
 
 2. Within this Core application add two `ViewModel`s:
 
-  	using System;
+  	        using System;
 		using System.Windows.Input;
 		using Cirrious.CrossCore.Platform;
 		using Cirrious.MvvmCross.ViewModels;
@@ -151,7 +157,7 @@ To see an example of this, let's set up a simple Android application.
 
 3. For `IMvxAppStart` choose to always show the `FirstViewModel` using:
 
-    Mvx.RegisterSingleton<IMvxAppStart>(new MvxAppStart<FirstViewModel>());
+    Mvx.RegisterAppStart<FirstViewModel>();
 
 4. Create an Android UI for this app - just as we did in the `TipCalc` sample
 
@@ -162,7 +168,7 @@ To see an example of this, let's set up a simple Android application.
 		<?xml version="1.0" encoding="utf-8"?>
 		<LinearLayout
 		  xmlns:android="http://schemas.android.com/apk/res/android"
-		  xmlns:local="http://schemas.android.com/apk/res/MyApp.UI.Droid"
+		  xmlns:local="http://schemas.android.com/apk/res-auto"
 		  android:layout_width="fill_parent"
 		  android:layout_height="fill_parent"
 		  >
@@ -180,7 +186,7 @@ To see an example of this, let's set up a simple Android application.
 		<?xml version="1.0" encoding="utf-8"?>
 		<LinearLayout
 		  xmlns:android="http://schemas.android.com/apk/res/android"
-		  xmlns:local="http://schemas.android.com/apk/res/MyApp.UI.Droid"
+		  xmlns:local="http://schemas.android.com/apk/res-auto"
 		  android:layout_width="fill_parent"
 		  android:layout_height="fill_parent"
 		  >
@@ -238,7 +244,7 @@ To achieve this, the navigation from `MasterViewModel` to `DetailViewModel` will
   - `Guid`
   - enumeration values
 
-The reason for this limitations are that the navigation object itself needs to be serialized - it needs to be passed through mechanisms like Xaml urls on WindowsPhone, and like Intent parameter bundles on Android.
+The reason for this limitations are that the navigation object itself needs to be serialized - it needs to be passed through mechanisms like Xaml urls on WindowsPhone, and like `Intent` parameter bundles on Android.
 
 If you do ever want to pass more complex objects between ViewModels during navigation, then you will need to find an alternative mechanism - e.g. perhaps caching the object in SQLite and using an index to identify the object.
 
@@ -288,16 +294,13 @@ TODO
 
 TODO
 
-###How do I remove ViewModels from the back stack?
+###How do I remove `View`s and `ViewModel`s from the back stack?
 
 TODO
 
 ##What if I don't want 'Pages'?
 
-TODO
-
-###Tabs
-###Navigation within Tabs
+TODO - see Presenter
 ###Modal Windows
 ###Dialogs
 
