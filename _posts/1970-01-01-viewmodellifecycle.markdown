@@ -27,13 +27,13 @@ The default ViewModelLocator in v3 builds new ViewModel instances using a 4-step
 
 In MvvmCross, you can navigate to a `ViewModel` using parameter like:
 
-  ShowViewModel<DetailViewModel>( 
-    new 
-    {
-      First="Hello",
-      Second="World",
-      Answer=42
-    });
+    ShowViewModel<DetailViewModel>( 
+      new 
+      {
+        First="Hello",
+        Second="World",
+        Answer=42
+      });
 
 
 In older version of MvvmCross, these navigation parameters were passed to the constructor of the `ViewModel`.
@@ -42,32 +42,32 @@ However, from v3 moving forwards, these navigation parameters are instead passed
 
 This means that, for example, a `DetailViewModel` constructor might now look like:
 
-  public class DetailViewModel : MvxViewModel
-  {
-    private readonly IDetailRepository _repository;
- 
-    public DetailViewModel(IDetailRepository repository)
+    public class DetailViewModel : MvxViewModel
     {
-      _repository = repository;
-    }
+      private readonly IDetailRepository _repository;
  
-    // ...
-  }
+      public DetailViewModel(IDetailRepository repository)
+      {
+        _repository = repository;
+      }
+ 
+      // ...
+    }
 
 This Dependency Injection is, of course, optional - you code can instead continue to use ServiceLocation if you prefer:
 
 
-  public class DetailViewModel : MvxViewModel
-  {
-    private readonly IDetailRepository _repository;
- 
-    public DetailViewModel()
+    public class DetailViewModel : MvxViewModel
     {
-      repository = Mvx.Resolve<IDetailRepository>();
-    }
+      private readonly IDetailRepository _repository;
  
-    // ...
-  }
+      public DetailViewModel()
+      {
+        repository = Mvx.Resolve<IDetailRepository>();
+      }
+ 
+      // ...
+    }
 
 
 ###2. Init()
