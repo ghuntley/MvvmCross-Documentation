@@ -20,7 +20,9 @@ In the `TipCalc` walkthough, we built most of our initial MvvmCross applications
 
 An implementation of this interface was registered by the core `App` like:
 
-     Mvx.RegisterAppStart<TipViewModel>();
+{% highlight csharp %}
+Mvx.RegisterAppStart<TipViewModel>();
+{% endhighlight %}
 
 This implementation was then used in the `AppDelegate` and `App.Xaml` start sequences within the UI projects.
 
@@ -36,76 +38,83 @@ To add a splashscreen:
 
 2. Add some simple AXML for a splashscreen. For example, a very simple screen might be:
 
-        <?xml version="1.0" encoding="utf-8"?>
-        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="loading..." />
-        </FrameLayout>
+{% highlight csharp %}
+<?xml version="1.0" encoding="utf-8"?>
+  <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent">
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:gravity="center"
+          android:text="loading..." />
+  </FrameLayout>
+</xml>
+{% endhighlight %}
 
-   Note that this splashscreen will be displayed before the MvvmCross system is fully booted - so you **cannot** use data-binding within the splashscreen AXML.
+ Note that this splashscreen will be displayed before the MvvmCross system is fully booted - so you **cannot** use data-binding within the splashscreen AXML.
 
 3. Add a simple Activity for the splashscreen. This will contain C# like:
 
-            using Android.App;
-            using Cirrious.MvvmCross.Droid.Views;
+{% highlight csharp %}
+using Android.App;
+using Cirrious.MvvmCross.Droid.Views;
 
-            namespace CalcApp.UI.Droid
-            {
-                [Activity(Label = "My App", MainLauncher = true, NoHistory = true, Icon = "@drawable/icon")]
-                public class SplashScreenActivity
-                    : MvxSplashScreenActivity
-                {
-                    public SplashScreenActivity()
-                        : base(Resource.Layout.SplashScreen)
-                    {
-                    }
-                }
-            }
+namespace CalcApp.UI.Droid
+{
+    [Activity(Label = "My App", MainLauncher = true, NoHistory = true, Icon = "@drawable/icon")]
+    public class SplashScreenActivity : MvxSplashScreenActivity
+    {
+        public SplashScreenActivity() : base(Resource.Layout.SplashScreen)
+        {
+        }
+    }
+}
+{% endhighlight %}
 
-  This `SplashScreenActivity` uses the base `MvxSplashScreenActivity` which will start the MvvmCross framework and, when initialisation is complete, will then use the `IMvxAppStart` interface.
+This `SplashScreenActivity` uses the base `MvxSplashScreenActivity` which will start the MvvmCross framework and, when initialisation is complete, will then use the `IMvxAppStart` interface.
 
 ### Supporting more advanced startup 
 
 The `TipCalc` app had a very simple startup instruction:
 
+{% highlight csharp %}
      Mvx.RegisterAppStart<TipViewModel>();
+{% endhighlight %}
 
 This was an instruction to: **always start the app with a `TipViewModel`**
 
 If you wanted instead to start with a different `ViewModel` - e.g. with `LoginViewModel` then you'd have to replace this with:
 
+{% highlight csharp %}
      Mvx.RegisterAppStart<LoginViewModel>();
+{% endhighlight %}
 
 If you wanted instead to start with some logic, then you can do this by providing a custom `IMvxAppStart` implementation - e.g.:
 
-    public class CustomAppStart 
-        : MvxNavigatingObject
-        , IMvxAppStart
+{% highlight csharp %}
+public class CustomAppStart : MvxNavigatingObject, IMvxAppStart
+{
+    private readonly ILoginService _service;
+
+    public CustomAppStart(ILoginService service)
     {
-        private readonly ILoginService _service;
+        _service = service;
+    }
 
-        public CustomAppStart(ILoginService service)
+    public void Start(object hint = null)
+    {
+        if (!_service.IsLoggedIn)
         {
-            _service = service;
+            ShowViewModel<LoginViewModel>();
         }
-
-        public void Start(object hint = null)
+        else
         {
-            if (!_service.IsLoggedIn)
-            {
-                ShowViewModel<LoginViewModel>();
-            }
-            else
-            {
-                ShowViewModel<TipViewModel>();
-            }
+            ShowViewModel<TipViewModel>();
         }
     }
+}
+{% endhighlight %}
 
 Notice that to request this initial navigation, the `CustomAppStart` uses the `ShowViewModel<TViewModel>` method on the `MvxNavigatingObject` base class. We'll see this method used throughout this article - it is the core of the MvvmCross navigation mechanism.
 
@@ -115,7 +124,9 @@ If you wanted to do even more here, e.g. if you wanted to use parameters passed 
 
 When your app is displaying a `ViewModel` page, say `FirstViewModel`, then that first page can request that the display is moved forwards to a new `ViewModel` page, say `SecondViewModel` by using a call like:
 
-     ShowViewModel<SecondViewModel>();
+{% highlight csharp %}
+ShowViewModel<SecondViewModel>();
+{% endhighlight %}
 
 When the `FirstViewModel` makes this request, then the MvvmCross framework will:
 
@@ -132,32 +143,36 @@ To see an example of this, let's set up a simple Android application.
 
 2. Within this Core application add two `ViewModel`s:
 
-  	        using System;
-		using System.Windows.Input;
-		using Cirrious.CrossCore.Platform;
-		using Cirrious.MvvmCross.ViewModels;
+{% highlight csharp %}
+using System;
+using System.Windows.Input;
+using Cirrious.CrossCore.Platform;
+using Cirrious.MvvmCross.ViewModels;
 
-		namespace MyApp.Core
-		{
-			public class FirstViewModel : MvxViewModel
-			{
-				public ICommand GoCommand
-				{
-					get
-					{
-						return new MvxRelayCommand(() => ShowViewModel<SecondViewModel>();
-					}
-				}
-			}		
+namespace MyApp.Core
+{
+    public class FirstViewModel : MvxViewModel
+    {
+      	public ICommand GoCommand
+      	{
+            get
+            {
+                return new MvxRelayCommand(() => ShowViewModel<SecondViewModel>();
+            }
+    	}
+    }		
 
-			public class SecondViewModel : MvxViewModel
-			{
-			}
-		}		
+    public class SecondViewModel : MvxViewModel
+    {
+    }
+}		
+{% endhighlight %}
 
 3. For `IMvxAppStart` choose to always show the `FirstViewModel` using:
 
-    Mvx.RegisterAppStart<FirstViewModel>();
+{% highlight csharp %}
+Mvx.RegisterAppStart<FirstViewModel>();
+{% endhighlight %}
 
 4. Create an Android UI for this app - just as we did in the `TipCalc` sample
 
@@ -165,39 +180,43 @@ To see an example of this, let's set up a simple Android application.
 
 6. For `FirstView` include a button - and bind it's `Click` event to the `GoCommand` within the `FirstViewModel`
 
-		<?xml version="1.0" encoding="utf-8"?>
-		<LinearLayout
-		  xmlns:android="http://schemas.android.com/apk/res/android"
-		  xmlns:local="http://schemas.android.com/apk/res-auto"
-		  android:layout_width="fill_parent"
-		  android:layout_height="fill_parent"
-		  >
-			<Button
-			  android:layout_width="fill_parent"
-			  android:layout_height="wrap_content"
-			  android:text="Go"
-			  android:textSize="40dp"
-			  local:MvxBind="Click GoCommand"
-			  />
-		</LinearLayout>
+{% highlight csharp %}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:local="http://schemas.android.com/apk/res-auto"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  >
+	<Button
+	  android:layout_width="fill_parent"
+	  android:layout_height="wrap_content"
+	  android:text="Go"
+	  android:textSize="40dp"
+	  local:MvxBind="Click GoCommand"
+	  />
+</LinearLayout>
+{% endhighlight %}
  
 7. For `SecondView` include only some 'simple' text:
 
-		<?xml version="1.0" encoding="utf-8"?>
-		<LinearLayout
-		  xmlns:android="http://schemas.android.com/apk/res/android"
-		  xmlns:local="http://schemas.android.com/apk/res-auto"
-		  android:layout_width="fill_parent"
-		  android:layout_height="fill_parent"
-		  >
-			<TextView
-			  android:layout_width="fill_parent"
-			  android:layout_height="wrap_content"
-			  android:text="This is the Second View"
-			  android:textSize="40dp"
-			  />
-		</LinearLayout>
- 
+{% highlight csharp %}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:local="http://schemas.android.com/apk/res-auto"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  >
+	<TextView
+	  android:layout_width="fill_parent"
+	  android:layout_height="wrap_content"
+	  android:text="This is the Second View"
+	  android:textSize="40dp"
+	  />
+</LinearLayout>
+{% endhighlight %}
+
 8. As discussed above in 'The initial navigation' add a SplashScreen for this Droid app.
 
 When this application runs, you should see a simple UI for `FirstView` with a `FirstViewModel` data context, and when you press the 'Go' button, you should see the display shift to a `SecondView` with a `SecondViewModel` data context
@@ -216,21 +235,27 @@ To achieve this, the navigation from `MasterViewModel` to `DetailViewModel` will
 
 - we declare a class `DetailParameters` for the navigation:
 
-        public class DetailParameters
-        {
-            public int Index { get; set; }
-        }
+{% highlight csharp %}
+public class DetailParameters
+{
+    public int Index { get; set; }
+}
+{% endhighlight %}
 
 - the `MasterViewModel` makes `ShowViewModel` a call like:
 
-        ShowViewModel<DetailViewModel>(new DetailParameters() { Index = 2 });
+{% highlight csharp %}
+ShowViewModel<DetailViewModel>(new DetailParameters() { Index = 2 });
+{% endhighlight %}
 
 - the `DetailViewModel` declares an `Init` method in order to receive this `DetailParameters`:
 
-        public void Init(DetailParameters parameters)
-        {
-            // use the parameters here
-        }
+{% highlight csharp %}
+public void Init(DetailParameters parameters)
+{
+    // use the parameters here
+}
+{% endhighlight %}
 
 **Note** that the `DetailParameters` class used here must be a 'simple' class used only for these navigations:
 
@@ -262,14 +287,18 @@ For example, you can:
 
 - use a call to `ShowViewModel` like:
 
-        ShowViewModel<DetailViewModel>(new { index = 2 });
+{% highlight csharp %}
+ShowViewModel<DetailViewModel>(new { index = 2 });
+{% endhighlight %}
 
 - in the `DetailViewModel` declare an `Init` method in order to receive this `index` as:
 
-        public void Init(int index)
-        {
-            // use the index here
-        }
+{% highlight csharp %}
+public void Init(int index)
+{
+    // use the index here
+}
+{% endhighlight %}
 
 **Note** that due to serialization requirements, the only available parameter types used within this technique are only:
 

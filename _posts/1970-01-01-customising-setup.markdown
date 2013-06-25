@@ -16,11 +16,13 @@ In each deployed MvvmCross application there are two key classes which control h
 Typically App.cs provides only initialization of:
 
 - simple rule-based IoC registration - e.g.:
- 
-            CreatableTypes()
-                .EndingWith("Service")
-                .AsInterfaces()
-                .RegisterAsLazySingleton();
+
+{% highlight csharp %}
+CreatableTypes()
+    .EndingWith("Service")
+    .AsInterfaces()
+    .RegisterAsLazySingleton();
+{% endhighlight %}
 
 - the `ViewModelLocator` - how `ViewModel`s are found or created when `View`s are displayed
 - the `IMvxAppStart` - which `ViewModel` or `ViewModel`s are shown when the application is first started
@@ -31,63 +33,69 @@ Internally the `Setup` bootstrapper performa many steps.
 
 You can see most of them in the MvxSetup.cs class source which includes a sequence like this:
 
-            // IoC
-            InitializeIoC();
-         
-            // Core components
-            InitializeFirstChance();
-            InitializeDebugServices();
-            InitializePlatformServices();
-            InitializeSettings();
-            InitializeSingletonCache();
-            
-            // Second components
-            PerformBootstrapActions();
-            InitializeStringToTypeParser();
-            InitializeViewModelFramework();
-            var pluginManager = InitializePluginFramework();
-            InitializeApp(pluginManager);
-            InitialiseViewModelTypeFinder();
-            InitializeViewsContainer();
-            InitiaiseViewDispatcher();
-            InitializeViewLookup();
-            InitialiseCommandCollectionBuilder();
-            InitializeNavigationSerializer();
-            InitializeInpcInterception();
-            InitializeLastChance();
+{% highlight csharp %}
+// IoC
+InitializeIoC();
+
+// Core components
+InitializeFirstChance();
+InitializeDebugServices();
+InitializePlatformServices();
+InitializeSettings();
+InitializeSingletonCache();
+
+// Second components
+PerformBootstrapActions();
+InitializeStringToTypeParser();
+InitializeViewModelFramework();
+var pluginManager = InitializePluginFramework();
+InitializeApp(pluginManager);
+InitialiseViewModelTypeFinder();
+InitializeViewsContainer();
+InitiaiseViewDispatcher();
+InitializeViewLookup();
+InitialiseCommandCollectionBuilder();
+InitializeNavigationSerializer();
+InitializeInpcInterception();
+InitializeLastChance();
+{% endhighlight %}
 
 Most of these steps are `virtual` - so they allow customisation. Also most of these steps are implemented using virtual `Create` steps - which again should make customisation easier:
-           
-            protected virtual void InitialiseFoo()
-            {
-               var foo = CreateFoo();
-               Mvx.RegisterSingleton<Foo>();
-            }
-            
-            protected virtual IFoo CreateFoo()
-            {
-               return new Foo();
-            }
+
+{% highlight csharp %}
+protected virtual void InitialiseFoo()
+{
+   var foo = CreateFoo();
+   Mvx.RegisterSingleton<Foo>();
+}
+
+protected virtual IFoo CreateFoo()
+{
+   return new Foo();
+}
+{% endhighlight %}
 
 Added to these base class steps, each platform adds a small number of platform specific steps - eg Android adds some additional methods and properties for initialisation of the Android UI and especially of the data-binding framework:
 
-            string ExecutableNamespace { get; }
-            Assembly ExecutableAssembly { get; }
-            IMvxAndroidViewPresenter CreateViewPresenter()
-            InitializeSavedStateConverter()
-            InitialiseBindingBuilder()
-            MvxAndroidBindingBuilder CreateBindingBuilder()
-            RegisterBindingBuilderCallbacks()
-            FillBindingNames(IMvxBindingNameRegistry registry)
-            FillAxmlViewTypeResolver(IMvxAxmlNameViewTypeResolver viewTypeResolver)
-            FillNamespaceListViewTypeResolver(IMvxNamespaceListViewTypeResolver viewTypeResolver)
-            FillValueConverters(IMvxValueConverterRegistry registry)
-            FillTargetFactories(IMvxTargetBindingFactoryRegistry registry)
-            IList<string> ViewNamespaces { get; }
-            IDictionary<string, string> ViewNamespaceAbbreviations { get; }
-            List<Assembly> ValueConverterAssemblies { get; }
-            List<Type> ValueConverterHolders { get; }
-            IList<Assembly> AndroidViewAssemblies { get; }
+{% highlight csharp %}
+string ExecutableNamespace { get; }
+Assembly ExecutableAssembly { get; }
+IMvxAndroidViewPresenter CreateViewPresenter()
+InitializeSavedStateConverter()
+InitialiseBindingBuilder()
+MvxAndroidBindingBuilder CreateBindingBuilder()
+RegisterBindingBuilderCallbacks()
+FillBindingNames(IMvxBindingNameRegistry registry)
+FillAxmlViewTypeResolver(IMvxAxmlNameViewTypeResolver viewTypeResolver)
+FillNamespaceListViewTypeResolver(IMvxNamespaceListViewTypeResolver viewTypeResolver)
+FillValueConverters(IMvxValueConverterRegistry registry)
+FillTargetFactories(IMvxTargetBindingFactoryRegistry registry)
+IList<string> ViewNamespaces { get; }
+IDictionary<string, string> ViewNamespaceAbbreviations { get; }
+List<Assembly> ValueConverterAssemblies { get; }
+List<Type> ValueConverterHolders { get; }
+IList<Assembly> AndroidViewAssemblies { get; }
+{% endhighlight %}
 
 This long list of virtual methods does provide a lot of opportunities for overriding default MvvmCross behaviour. 
 
@@ -111,10 +119,12 @@ In this section, we'll only introduce some of the possibilities for creating and
 
 It's very common for `App.Initialize` to include IoC registration. Indeed, the default nuget `App.cs` template includes
 
-            CreatableTypes()
-                .EndingWith("Service")
-                .AsInterfaces()
-                .RegisterAsLazySingleton();
+{% highlight csharp %}
+CreatableTypes()
+    .EndingWith("Service")
+    .AsInterfaces()
+    .RegisterAsLazySingleton();
+{% endhighlight %}
 
 This logic says:
 
@@ -135,16 +145,22 @@ These two placeholders provide key places for you to create and register service
 
 For example, if you wanted to implement an `EncryptionService` which would provide native data-encryption for your application, then you could do this during `Setup.InitializeFirstChance` using:
 
-            Mvx.RegisterType<IEncryption, MyEncryption>();
-       
+{% highlight csharp %}
+Mvx.RegisterType<IEncryption, MyEncryption>();
+{% endhighlight %}
+      
 This would then allow all of your `App` code - including code executed during `App.Initialize()` to use calls like:
 
-            var encryption = Mvx.Resolve<IEncryption>();
-            var safe = encryption.Encode(raw);
+{% highlight csharp %}
+var encryption = Mvx.Resolve<IEncryption>();
+var safe = encryption.Encode(raw);
+{% endhighlight %}
 
 Alternatively, if you wanted to implement a `DialogService` which would be used during normal UI flow, then you might choose to register this during `Setup.InitializeLastChance` as:
 
-            Mvx.RegisterSingleton<IDialogService>(new MyDialogService());
+{% highlight csharp %}
+Mvx.RegisterSingleton<IDialogService>(new MyDialogService());
+{% endhighlight %}
 
 For many objects the choice of when to initialize - first or last - doesn't matter. For others, the key choice is whether the service needs to be available before or after the `App` is created and initialized.
 
@@ -159,37 +175,41 @@ To provide a custom trace implementation:
 
 One common use of this is simply to display messages to `Debug` using:
 
-            public class MyDebugTrace : IMvxTrace
+{% highlight csharp %}
+public class MyDebugTrace : IMvxTrace
+{
+	public void Trace(MvxTraceLevel level, string tag, Func<string> message)
 	{
-		public void Trace(MvxTraceLevel level, string tag, Func<string> message)
-		{
-			Debug.WriteLine(tag + ":" + level + ":" + message());
-		}
+		Debug.WriteLine(tag + ":" + level + ":" + message());
+	}
 
-		public void Trace(MvxTraceLevel level, string tag, string message)
-		{
-			Debug.WriteLine(tag + ":" + level + ":" + message);
-		}
+	public void Trace(MvxTraceLevel level, string tag, string message)
+	{
+		Debug.WriteLine(tag + ":" + level + ":" + message);
+	}
 
-		public void Trace(MvxTraceLevel level, string tag, string message, params object[] args)
+	public void Trace(MvxTraceLevel level, string tag, string message, params object[] args)
+	{
+		try
 		{
-			try
-			{
-				Debug.WriteLine(string.Format(tag + ":" + level + ":" + message, args));
-			}
-			catch (FormatException)
-			{
-				Trace(MvxTraceLevel.Error, tag, "Exception during trace of {0} {1} {2}", level, message);
-			}
+			Debug.WriteLine(string.Format(tag + ":" + level + ":" + message, args));
+		}
+		catch (FormatException)
+		{
+			Trace(MvxTraceLevel.Error, tag, "Exception during trace of {0} {1} {2}", level, message);
 		}
 	}
+}
+{% endhighlight %}
 
 this can be returned during `Setup` using:
 
-            protected override IMvxTrace CreateDebugTrace() 
-            { 
-                        return new MyDebugTrace(); 
-            }
+{% highlight csharp %}
+protected override IMvxTrace CreateDebugTrace() 
+{ 
+            return new MyDebugTrace(); 
+}
+{% endhighlight %}
             
 
 ##Changing the IoC container that MvvmCross uses
@@ -216,35 +236,39 @@ If you want to override this behaviour for one or more `ViewModel` types, then y
 
 For example, you could implement
 
-	public class MyViewModelLocator
-	  : MvxDefaultViewModelLocator
-	{
-	    private SpecialViewModel _special = new SpecialViewModel();
-	
-	    public override bool TryLoad(Type viewModelType, IDictionary<string, string> parameterValueLookup,
-		                             out IMvxViewModel model)
-	    {
-	        if (viewModelType == typeof(SpecialViewModel))
-	        {
-	        	model = _special;
-	        	return true;
-	        }
-	        else if (viewModelType == typeof(FooViewModel))
-	        {
-	        	model = new FooViewModel(_special);
-	        	return true;
-	        }
-	        
-	        return base.TryLoad(viewModelType, parameterValueLookup, out model);
-	    }
-	}
+{% highlight csharp %}
+public class MyViewModelLocator : MvxDefaultViewModelLocator
+{
+    private SpecialViewModel _special = new SpecialViewModel();
+
+    public override bool TryLoad(Type viewModelType, IDictionary<string, string> parameterValueLookup,
+	                             out IMvxViewModel model)
+    {
+        if (viewModelType == typeof(SpecialViewModel))
+        {
+        	model = _special;
+        	return true;
+        }
+        else if (viewModelType == typeof(FooViewModel))
+        {
+        	model = new FooViewModel(_special);
+        	return true;
+        }
+        
+        return base.TryLoad(viewModelType, parameterValueLookup, out model);
+    }
+}
+{% endhighlight %}
 
 and could then return this in App.cs:
 
-	protected override IMvxViewModelLocator CreateDefaultViewModelLocator()
-	{
-	    return new MyViewModelLocator();
-	}
+
+{% highlight csharp %}
+protected override IMvxViewModelLocator CreateDefaultViewModelLocator()
+{
+    return new MyViewModelLocator();
+}
+{% endhighlight %}
 
 ##Custom IMvxAppStart
 
@@ -252,31 +276,35 @@ When an MvvmCross application starts by default it shows the `View` associated w
 
 This default behaviour is configured in `Initialize` in `App.cs` using:
 
-	RegisterAppStart<FirstViewModel>();
+{% highlight csharp %}
+RegisterAppStart<FirstViewModel>();
+{% endhighlight %}
         
 If more advanced startup logic is needed, then a custom app start can be used - e.g.
 
-        public class CustomAppStart
-            : MvxNavigatingObject
-            , IMvxAppStart
+{% highlight csharp %}
+public class CustomAppStart : MvxNavigatingObject, IMvxAppStart
+{
+    public void Start(object hint = null)
+    {
+    	var auth = Mvx.Resolve<IAuth>();
+        if (auth.Check())
         {
-            public void Start(object hint = null)
-            {
-            	var auth = Mvx.Resolve<IAuth>();
-                if (auth.Check())
-                {
-                    ShowViewModel<HomeViewModel>();
-                }
-                else
-                {
-                    ShowViewModel<LoginViewModel>();
-                }
-            }
+            ShowViewModel<HomeViewModel>();
         }
+        else
+        {
+            ShowViewModel<LoginViewModel>();
+        }
+    }
+}
+{% endhighlight %}
 
 This can then be registered in `App` using:
 
-	RegisterAppStart(new CustomAppStart());
+{% highlight csharp %}
+RegisterAppStart(new CustomAppStart());
+{% endhighlight %}
 
 **Note:** For situations where the app is launched using a `protocol` - e.g. from a Push notification or from an email link - then the `object hint` parameter start can be used to transfer a hint from the UI to the start object. Currently, it's up to you - the app developer - to write the UI side code to do this.
 
@@ -310,41 +338,43 @@ There are several ways that individual ValueConverters can be registered. The mo
  
 These three techniques are shown as:
 
-        // 1. register all value converters in the Assembly containing `MyFirstValueConverter`
-        protected override List<Assembly> ValueConverterAssemblies
-        {
-            get
-            {
-                var toReturn = base.ValueConverterAssemblies;
-                toReturn.Add(typeof(MyFirstValueConverter).Assembly);
-                return toReturn;
-            }
-        }
+{% highlight csharp %}
+// 1. register all value converters in the Assembly containing `MyFirstValueConverter`
+protected override List<Assembly> ValueConverterAssemblies
+{
+    get
+    {
+        var toReturn = base.ValueConverterAssemblies;
+        toReturn.Add(typeof(MyFirstValueConverter).Assembly);
+        return toReturn;
+    }
+}
 
-        // 2. register all value converters in the wrapper Converters
-        public class Converters
-        {
-        	// this converter will be registered with name "TheLength"
-        	public readonly LengthValueConverter TheLength = new LengthValueConverter();
-        }
-        
-        protected override protected List<Type> ValueConverterHolders
-        {
-            get
-            {
-                var toReturn = base.ValueConverterHolders;
-                toReturn.Add(typeof(Converters);
-                return toReturn;
-            }
-        }
+// 2. register all value converters in the wrapper Converters
+public class Converters
+{
+	// this converter will be registered with name "TheLength"
+	public readonly LengthValueConverter TheLength = new LengthValueConverter();
+}
 
-	// 3. register value converters one at a time
-        protected override void FillValueConverters(IMvxValueConverterRegistry registry)
-        {
-            base.FillValueConverters(registry);
-            
-            registry.AddOrOverwrite("Foo", new SquareValueConverter());
-        }
+protected override protected List<Type> ValueConverterHolders
+{
+    get
+    {
+        var toReturn = base.ValueConverterHolders;
+        toReturn.Add(typeof(Converters);
+        return toReturn;
+    }
+}
+
+// 3. register value converters one at a time
+protected override void FillValueConverters(IMvxValueConverterRegistry registry)
+{
+    base.FillValueConverters(registry);
+    
+    registry.AddOrOverwrite("Foo", new SquareValueConverter());
+}
+{% endhighlight %}
 
 **Notes:**
 
@@ -358,15 +388,17 @@ One final technique used for registering value converters is used by some of the
 
 This technique involves using the `CallbackWhenRegistered` IoC method on the `IMvxValueConverterRegistry` interface. This is used, for example, in the Visibility plugin as:
         
-        Mvx.CallbackWhenRegistered<IMvxValueConverterRegistry>(RegisterValueConverters);
-        
-        // ...
-        
-        private void RegisterValueConverters()
-        {
-            var registry = Mvx.Resolve<IMvxValueConverterRegistry>();
-            registry.AddOrOverwriteFrom(GetType().Assembly);
-        }            
+{% highlight csharp %}
+Mvx.CallbackWhenRegistered<IMvxValueConverterRegistry>(RegisterValueConverters);
+
+// ...
+
+private void RegisterValueConverters()
+{
+    var registry = Mvx.Resolve<IMvxValueConverterRegistry>();
+    registry.AddOrOverwriteFrom(GetType().Assembly);
+}            
+{% endhighlight %}
 
 
 For more on creating ValueConverters, see the ValueConverter sample in: https://github.com/slodge/MvvmCross-Tutorials/tree/master/ValueConversion
@@ -379,15 +411,17 @@ In order to do this, you must supply the MvvmCross binding system with a list of
 
 To do this, you can override the `Setup` property `AndroidViewAssemblies`:
 
-        protected override IList<Assembly> AndroidViewAssemblies
-        {
-            get
-            {
-            	var toReturn = base.AndroidViewAssemblies;
-            	toReturn.Add(typeof(CheeseBaron.ExcellentViews.Pages).Assembly);
-                return toReturn;
-            }
-        }
+{% highlight csharp %}
+protected override IList<Assembly> AndroidViewAssemblies
+{
+    get
+    {
+    	var toReturn = base.AndroidViewAssemblies;
+    	toReturn.Add(typeof(CheeseBaron.ExcellentViews.Pages).Assembly);
+        return toReturn;
+    }
+}
+{% endhighlight %}
 
 
 For more on writing Custom Views, see the N=18 and N=19 steps in N+1 - todo-link
@@ -396,36 +430,47 @@ For more on writing Custom Views, see the N=18 and N=19 steps in N+1 - todo-link
 
 In iOS Fluent Bindings you frequently see code like:
 
-	set.Bind(myLabel).To(vm => vm.FullName);
+
+{% highlight csharp %}
+set.Bind(myLabel).To(vm => vm.FullName);
+{% endhighlight %}
 
 This code uses a developer shortcut - the **default** binding property of a UILabel. This is just a shortcut and it means the binding is actually performed as:
 
+{% highlight csharp %}
 	set.Bind(myLabel).For(label => label.Text).To(vm => vm.FullName);
+{% endhighlight %}
+
 
 At present the defined set of default properties or events includes:
 
-            UIButton TouchUpInside
-            UIBarButtonItem Clicked
-            UITextField Text
-            UITextView Text
-            UITextField Text
-            MvxCollectionViewSource ItemsSource
-            MvxTableViewSource ItemsSource
-            MvxImageView ImageUrl
-            UIImageView	Image
-            UIDatePicker Date
-            UISlider Value
-            UISwitch On
-            UIDatePicker Date
-            IMvxImageHelper ImageUrl
-            MvxImageViewLoader ImageUrl
+{% highlight csharp %}
+UIButton TouchUpInside
+UIBarButtonItem Clicked
+UITextField Text
+UITextView Text
+UITextField Text
+MvxCollectionViewSource ItemsSource
+MvxTableViewSource ItemsSource
+MvxImageView ImageUrl
+UIImageView	Image
+UIDatePicker Date
+UISlider Value
+UISwitch On
+UIDatePicker Date
+IMvxImageHelper ImageUrl
+MvxImageViewLoader ImageUrl
+{% endhighlight %}
 
 If you would like register additional shortcuts in your application, or if you'd like to replace some of the existing shortcuts, then this can be done in `FillBindingNames`
 
-		protected override void FillBindingNames(IMvxBindingNameRegistry registry)
-		{
-			registry.AddOrOverwrite(typeof (MyControl), "MyDefaultPropertyOrEvent");
-		}
+
+{% highlight csharp %}
+protected override void FillBindingNames(IMvxBindingNameRegistry registry)
+{
+	registry.AddOrOverwrite(typeof (MyControl), "MyDefaultPropertyOrEvent");
+}
+{% endhighlight %}
 
 ##Registering custom bindings
 
@@ -449,27 +494,31 @@ To do this they can instead:
 
 - provide a concrete type of the ViewModel where one is specified - e.g. as:
     
-	public new DetailViewModel ViewModel
-        {
-             get { return base.ViewModel as DetailViewModel; }
-             set { base.ViewModel = value; }
-        }
+{% highlight csharp %}
+public new DetailViewModel ViewModel
+{
+     get { return base.ViewModel as DetailViewModel; }
+     set { base.ViewModel = value; }
+}
+{% endhighlight %}
 
 - or provide an explicit type of the ViewModel specified using an `MvxViewForAttribute`
  
 Further, in cases where every microsecond of startup time is essential, they can also help reduce the Reflection overhead by overriding the `InitializeViewLookup` method - e.g.
 
-        protected override void InitializeViewLookup()
-        {
-            var viewModelViewLookup = new Dictionary<Type, Type>()
-            {
-            	{ typeof (FirstViewModel), typeof(FirstView) },
-            	{ typeof (SecondViewModel), typeof(SecondView) },
-            	//
-            	{ typeof (UmpteenthViewModel), typeof(UmpteenthView) },
-            };
+{% highlight csharp %}
+protected override void InitializeViewLookup()
+{
+    var viewModelViewLookup = new Dictionary<Type, Type>()
+    {
+    	{ typeof (FirstViewModel), typeof(FirstView) },
+    	{ typeof (SecondViewModel), typeof(SecondView) },
+    	//
+    	{ typeof (UmpteenthViewModel), typeof(UmpteenthView) },
+    };
 
-            var container = Mvx.Resolve<IMvxViewsContainer>();
-            container.AddAll(viewModelViewLookup);
-        }
+    var container = Mvx.Resolve<IMvxViewsContainer>();
+    container.AddAll(viewModelViewLookup);
+}
+{% endhighlight %}
 
